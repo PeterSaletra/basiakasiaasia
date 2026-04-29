@@ -1,8 +1,14 @@
 import axios from "axios";
+import { AUTH_BASE_URL, USE_MOCK_API } from "@/config/api";
+import { mockLogin, mockLogout, mockRegister } from "@/mocks/mockApi";
 
 export async function login(email: string, password: string) {
+  if (USE_MOCK_API) {
+    return mockLogin(email, password);
+  }
+
   try {
-    const response = await axios.post("http://localhost:8000/api/auth/login", {
+    const response = await axios.post(`${AUTH_BASE_URL}/login`, {
       "email": email,
       "password": password,
     });
@@ -21,7 +27,11 @@ export async function login(email: string, password: string) {
 }
 
 export async function register(email: string, password: string, username: string, date_of_birth: Date | undefined, gender: string, role_id: number = 1) {
-  const response = await axios.post("http://localhost:8000/api/auth/register", {
+  if (USE_MOCK_API) {
+    return mockRegister(email, password, username, date_of_birth, gender, role_id);
+  }
+
+  const response = await axios.post(`${AUTH_BASE_URL}/register`, {
     "username": username,
     "email": email,
     "password": password,
@@ -33,10 +43,13 @@ export async function register(email: string, password: string, username: string
 }
 
 export async function logout() {
+  if (USE_MOCK_API) {
+    return mockLogout();
+  }
+
   const token = sessionStorage.getItem("refreshToken");
-  console.log("Logging out with token:", token);
   const response = await axios.post(
-    "http://localhost:8000/api/auth/logout",
+    `${AUTH_BASE_URL}/logout`,
     {
       "token": JSON.parse(token || "null"),
     }
