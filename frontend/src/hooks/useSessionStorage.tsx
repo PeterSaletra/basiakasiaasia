@@ -7,20 +7,25 @@ export const useSessionStorage = (keyName: string, defaultValue: string | null) 
       if (value) {
         return JSON.parse(value);
       } else {
-        window.sessionStorage.setItem(keyName, JSON.stringify(defaultValue));
         return defaultValue;
       }
     } catch {
       return defaultValue;
     }
   });
-  const setValue = (newValue: string) => {
+
+  const setValue = (newValue: string | null) => {
     try {
-      window.sessionStorage.setItem(keyName, JSON.stringify(newValue));
+      if (newValue === null) {
+        window.sessionStorage.removeItem(keyName);
+      } else {
+        window.sessionStorage.setItem(keyName, JSON.stringify(newValue));
+      }
     } catch (err) {
       console.log(err);
     }
     setStoredValue(newValue);
   };
+
   return [storedValue, setValue];
 };

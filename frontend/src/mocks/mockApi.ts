@@ -2,9 +2,16 @@ import asiaAvatar from "@/assets/img/Asia.jpg";
 import basiaAvatar from "@/assets/img/Basia.jpg";
 import kasiaAvatar from "@/assets/img/Kasia.jpg";
 import defaultUserAvatar from "@/assets/img/default-user.svg";
+import { MOCK_DATABASE_STORAGE_KEY } from "@/config/storage";
+import { addNotification } from "@/services/notifications";
+import {
+  type SessionRole,
+  readMockSessionUser,
+  writeMockSessionUser,
+} from "@/services/mockSession";
 
 type Gender = "male" | "female" | "other";
-type Role = "admin" | "user";
+type Role = SessionRole;
 
 type MockUserRecord = {
   user_id: number;
@@ -54,13 +61,6 @@ type MockDatabase = {
   comments: MockCommentRecord[];
 };
 
-type SessionUser = {
-  user_id: number;
-  username: string;
-  email: string;
-  role: Role;
-};
-
 export type MockAuthResponse = {
   role: Role;
   access_token_type: "Bearer";
@@ -72,8 +72,6 @@ export type MockAuthResponse = {
   user_id: number;
 };
 
-const STORAGE_KEY = "frontend-mock-db-v1";
-const SESSION_USER_KEY = "frontend-mock-user";
 const NETWORK_DELAY_MS = 150;
 
 const clone = <T>(value: T): T => {
@@ -122,43 +120,6 @@ const parseRoleFromSession = (): Role | null => {
   } catch {
     return null;
   }
-};
-
-const readSessionUser = (): SessionUser | null => {
-  if (typeof window === "undefined") {
-    return null;
-  }
-
-  const rawUser = window.sessionStorage.getItem(SESSION_USER_KEY);
-  if (!rawUser) {
-    return null;
-  }
-
-  try {
-    return JSON.parse(rawUser) as SessionUser;
-  } catch {
-    return null;
-  }
-};
-
-const writeSessionUser = (user: MockUserRecord | null): void => {
-  if (typeof window === "undefined") {
-    return;
-  }
-
-  if (user === null) {
-    window.sessionStorage.removeItem(SESSION_USER_KEY);
-    return;
-  }
-
-  const sessionUser: SessionUser = {
-    user_id: user.user_id,
-    username: user.username,
-    email: user.email,
-    role: user.role,
-  };
-
-  window.sessionStorage.setItem(SESSION_USER_KEY, JSON.stringify(sessionUser));
 };
 
 const createDefaultDatabase = (): MockDatabase => ({
@@ -307,7 +268,7 @@ const persistDatabase = (database: MockDatabase): void => {
   memoryDatabase = clone(database);
 
   if (typeof window !== "undefined") {
-    window.localStorage.setItem(STORAGE_KEY, JSON.stringify(memoryDatabase));
+    window.localStorage.setItem(MOCK_DATABASE_STORAGE_KEY, JSON.stringify(memoryDatabase));
   }
 };
 
@@ -316,7 +277,7 @@ const readDatabase = (): MockDatabase => {
     return clone(memoryDatabase);
   }
 
-  const rawDatabase = window.localStorage.getItem(STORAGE_KEY);
+  const rawDatabase = window.localStorage.getItem(MOCK_DATABASE_STORAGE_KEY);
   if (!rawDatabase) {
     persistDatabase(memoryDatabase);
     return clone(memoryDatabase);
@@ -334,7 +295,7 @@ const readDatabase = (): MockDatabase => {
 };
 
 const getCurrentUser = (database: MockDatabase): MockUserRecord => {
-  const sessionUser = readSessionUser();
+  const sessionUser = readMockSessionUser();
   if (sessionUser) {
     const currentUser = database.users.find((user) => user.user_id === sessionUser.user_id);
     if (currentUser) {
@@ -364,7 +325,12 @@ export async function mockLogin(email: string, password: string): Promise<MockAu
     throw new Error("Twoje konto zostalo zablokowane. Skontaktuj sie z administratorem.");
   }
 
-  writeSessionUser(user);
+  writeMockSessionUser({
+    user_id: user.user_id,
+    username: user.username,
+    email: user.email,
+    role: user.role,
+  });
 
   return withDelay({
     role: user.role,
@@ -409,6 +375,12 @@ export async function mockRegister(
 
   database.users.unshift(newUser);
   persistDatabase(database);
+  addNotification(newUser.user_id, {
+    kind: "success",
+    title: "Welcome to the forum",
+    message: `Your account ${newUser.username} is ready to use.`,
+    href: "/forum",
+  });
 
   return withDelay({
     user_id: newUser.user_id,
@@ -419,7 +391,7 @@ export async function mockRegister(
 }
 
 export async function mockLogout() {
-  writeSessionUser(null);
+  writeMockSessionUser(null);
   return withDelay({ success: true });
 }
 
@@ -441,6 +413,12 @@ export async function mockBanUser(userId: number) {
 
   user.is_banned = true;
   persistDatabase(database);
+  addNotification(user.user_id, {
+    kind: "moderation",
+    title: "Account restricted",
+    message: "An administrator has banned your account.",
+    href: user.role === "admin" ? "/admin" : "/profile",
+  });
 
   return withDelay({ success: true });
 }
@@ -455,6 +433,12 @@ export async function mockUnbanUser(userId: number) {
 
   user.is_banned = false;
   persistDatabase(database);
+  addNotification(user.user_id, {
+    kind: "success",
+    title: "Account restored",
+    message: "An administrator has unbanned your account.",
+    href: user.role === "admin" ? "/admin" : "/profile",
+  });
 
   return withDelay({ success: true });
 }
@@ -499,6 +483,12 @@ export async function mockCreateForum(title: string, description: string) {
 
   database.forums.unshift(newForum);
   persistDatabase(database);
+  addNotification(currentUser.user_id, {
+    kind: "success",
+    title: "Forum created",
+    message: `You created the forum "${newForum.title}".`,
+    href: `/forum/${newForum.id}`,
+  });
 
   return withDelay({
     ...newForum,
@@ -546,6 +536,12 @@ export async function mockCreateThread(
 
   database.threads.unshift(newThread);
   persistDatabase(database);
+  addNotification(currentUser.user_id, {
+    kind: "success",
+    title: "Thread created",
+    message: `You started the thread "${newThread.title}".`,
+    href: `/forum/${forumId}/thread/${newThread.id}`,
+  });
 
   return withDelay({
     id: newThread.id,
@@ -609,6 +605,12 @@ export async function mockCreateComment(threadId: number, content: string) {
 
   database.comments.push(newComment);
   persistDatabase(database);
+  addNotification(currentUser.user_id, {
+    kind: "info",
+    title: "Comment posted",
+    message: `Your comment was added to "${thread.title}".`,
+    href: `/forum/${thread.forum_id}/thread/${thread.id}`,
+  });
 
   return withDelay({
     id: newComment.id,

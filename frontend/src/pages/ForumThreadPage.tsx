@@ -33,6 +33,10 @@ function ForumThreadPage() {
     const [isDialogOpen, setIsDialogOpen] = useState(false);
     const [threadTitle, setThreadTitle] = useState("");
     const [threadDescription, setThreadDescription] = useState("");
+    const [titleFilter, setTitleFilter] = useState("");
+    const [authorFilter, setAuthorFilter] = useState("");
+    const [repliesFilter, setRepliesFilter] = useState("");
+    const [dateFilter, setDateFilter] = useState("");
     const navigate = useNavigate();
 
     // Mock data for threads in this forum
@@ -75,6 +79,13 @@ function ForumThreadPage() {
             toast.error(`Error creating thread: ${error}`);
         }
     };
+
+    const filteredThreads = forumThreads.filter((thread) =>
+        thread.title.toLowerCase().includes(titleFilter.toLowerCase())
+        && thread.author.toLowerCase().includes(authorFilter.toLowerCase())
+        && thread.replies.toString().includes(repliesFilter.trim())
+        && thread.date.toLowerCase().includes(dateFilter.toLowerCase())
+    );
 
     return (
         <div className='w-full min-h-screen flex flex-col gap-4 p-4 bg-gray-50'>
@@ -143,6 +154,28 @@ function ForumThreadPage() {
 
                 {/* Threads Table */}
                 <div className="bg-white rounded-lg border shadow-sm">
+                    <div className="grid gap-3 border-b p-4 md:grid-cols-2 xl:grid-cols-4">
+                        <Input
+                            placeholder="Search by thread title"
+                            value={titleFilter}
+                            onChange={(e) => setTitleFilter(e.target.value)}
+                        />
+                        <Input
+                            placeholder="Search by author"
+                            value={authorFilter}
+                            onChange={(e) => setAuthorFilter(e.target.value)}
+                        />
+                        <Input
+                            placeholder="Search by replies"
+                            value={repliesFilter}
+                            onChange={(e) => setRepliesFilter(e.target.value)}
+                        />
+                        <Input
+                            placeholder="Search by date"
+                            value={dateFilter}
+                            onChange={(e) => setDateFilter(e.target.value)}
+                        />
+                    </div>
                     <Table>
                         <TableHeader>
                             <TableRow>
@@ -153,7 +186,7 @@ function ForumThreadPage() {
                             </TableRow>
                         </TableHeader>
                         <TableBody>
-                            {forumThreads.map((thread) => (
+                            {filteredThreads.length > 0 ? filteredThreads.map((thread) => (
                                 <TableRow key={thread.id} className="hover:bg-gray-50">
                                     <TableCell>
                                         <Link 
@@ -167,7 +200,13 @@ function ForumThreadPage() {
                                     <TableCell className="text-gray-700">{thread.replies}</TableCell>
                                     <TableCell className="text-gray-500">{thread.date}</TableCell>
                                 </TableRow>
-                            ))}
+                            )) : (
+                                <TableRow>
+                                    <TableCell colSpan={4} className="py-8 text-center text-gray-500">
+                                        No threads match the current filters.
+                                    </TableCell>
+                                </TableRow>
+                            )}
                         </TableBody>
                     </Table>
                 </div>
