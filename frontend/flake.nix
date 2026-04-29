@@ -13,6 +13,13 @@
           packages = with pkgs; [
             nodejs
           ];
+
+          shellHook = ''
+            if [ ! -d node_modules ]; then
+              echo "Installing npm dependencies..."
+              npm install
+            fi
+          '';
         };
       in
       {
