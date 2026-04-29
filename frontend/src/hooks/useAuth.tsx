@@ -1,4 +1,4 @@
-import { createContext, useContext, useMemo, useState } from "react";
+import { createContext, useContext, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { useSessionStorage } from "./useSessionStorage";
 import { login as apiLogin, logout as apiLogout } from "../services/auth";
@@ -23,12 +23,10 @@ export const AuthProvider = ({ children }: { children: React.ReactNode}) => {
   const [refresh_token_expires_in, setRefreshTokenExpiresIn] = useSessionStorage("refresh_token_expires_in", null);
   const [role, setRole] = useSessionStorage("role", null);
   const navigate = useNavigate();
-  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false)
+  const isAuthenticated = accessToken !== null;
 
   const login = async (email: string, master_hash: string) => {
     try {
-      console.log("Logging in with email:", email);
-      console.log("Using master hash:", master_hash);
       const data = await apiLogin(email, master_hash);
       setRole(data.role);
       setAccessTokenType(data.access_token_type);
@@ -36,8 +34,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode}) => {
       setRefreshToken(data.refresh_token);
       setExpiresIn(data.access_token_expires_in);
       setRefreshTokenExpiresIn(data.refresh_token_expires_in);
-      setIsAuthenticated(true)
-      console.log("Login successful, received data:", role);
       if (data.role === "admin") {
         navigate("/admin");
         return;
@@ -52,11 +48,17 @@ export const AuthProvider = ({ children }: { children: React.ReactNode}) => {
   const logout = async () => {
     try {
       await apiLogout();
-      setIsAuthenticated(false);
     } catch (err) {
       console.error("Logout failed", err);
     }
-    sessionStorage.clear();
+
+    setAccessTokenType(null);
+    setAccessToken(null);
+    setRefreshToken(null);
+    setExpiresIn(null);
+    setRefreshTokenExpiresIn(null);
+    setRole(null);
+
     navigate("/login", { replace: true });
   };
 
