@@ -375,7 +375,7 @@ export async function mockRegister(
 
   database.users.unshift(newUser);
   persistDatabase(database);
-  addNotification(newUser.user_id, {
+  addNotification(String(newUser.user_id), {
     kind: "success",
     title: "Welcome to the forum",
     message: `Your account ${newUser.username} is ready to use.`,
@@ -413,7 +413,7 @@ export async function mockBanUser(userId: number) {
 
   user.is_banned = true;
   persistDatabase(database);
-  addNotification(user.user_id, {
+  addNotification(String(user.user_id), {
     kind: "moderation",
     title: "Account restricted",
     message: "An administrator has banned your account.",
@@ -433,7 +433,7 @@ export async function mockUnbanUser(userId: number) {
 
   user.is_banned = false;
   persistDatabase(database);
-  addNotification(user.user_id, {
+  addNotification(String(user.user_id), {
     kind: "success",
     title: "Account restored",
     message: "An administrator has unbanned your account.",
@@ -483,7 +483,7 @@ export async function mockCreateForum(title: string, description: string) {
 
   database.forums.unshift(newForum);
   persistDatabase(database);
-  addNotification(currentUser.user_id, {
+  addNotification(String(currentUser.user_id), {
     kind: "success",
     title: "Forum created",
     message: `You created the forum "${newForum.title}".`,
@@ -536,7 +536,7 @@ export async function mockCreateThread(
 
   database.threads.unshift(newThread);
   persistDatabase(database);
-  addNotification(currentUser.user_id, {
+  addNotification(String(currentUser.user_id), {
     kind: "success",
     title: "Thread created",
     message: `You started the thread "${newThread.title}".`,
@@ -605,7 +605,7 @@ export async function mockCreateComment(threadId: number, content: string) {
 
   database.comments.push(newComment);
   persistDatabase(database);
-  addNotification(currentUser.user_id, {
+  addNotification(String(currentUser.user_id), {
     kind: "info",
     title: "Comment posted",
     message: `Your comment was added to "${thread.title}".`,

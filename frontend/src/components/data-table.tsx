@@ -21,7 +21,9 @@ import { useState } from "react";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { RegisterCard } from "@/components/registerCard";
 import { toast } from "sonner";
-import { register } from "../services/auth";
+import { createUserWithEmailAndPassword } from "firebase/auth";
+import { auth } from "@/config/firebase";
+import { createUserProfile } from "@/services/roleService";
 
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[];
@@ -72,7 +74,8 @@ export function DataTable<TData, TValue>({
       return;
     }
 
-    await register(data.email, data.password, data.name, data.date, data.gender, 3);
+    const userCred = await createUserWithEmailAndPassword(auth, data.email, data.password);
+    await createUserProfile(userCred.user.uid, data.email, data.name, "admin");
     toast.success("Admin registered successfully!");
     } catch (error) {
       toast.error(`Registration error: ${error}`);

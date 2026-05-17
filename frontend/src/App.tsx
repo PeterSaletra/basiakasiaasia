@@ -12,8 +12,30 @@ import AdminPanelPage from './pages/AdminPanelPage'
 const ProtectedRoute = () => {
   const auth = useAuth()
 
-  if (auth.accessToken === null) {
+  if (auth.loading) {
+    return <div className="flex items-center justify-center min-h-screen">Loading...</div>
+  }
+
+  if (!auth.isAuthenticated) {
     return <Navigate to="/login" />
+  }
+
+  return <Outlet />
+}
+
+const AdminRoute = () => {
+  const auth = useAuth()
+
+  if (auth.loading) {
+    return <div className="flex items-center justify-center min-h-screen">Loading...</div>
+  }
+
+  if (!auth.isAuthenticated) {
+    return <Navigate to="/login" />
+  }
+
+  if (auth.role !== "admin") {
+    return <Navigate to="/" />
   }
 
   return <Outlet />
@@ -34,7 +56,9 @@ function App() {
             <Route path="/profile" element={<ProtectedRoute />} >
               <Route path="" element={<ProfilePage />} />
             </Route>
-            <Route path="/admin" element={<AdminPanelPage />} />
+            <Route path="/admin" element={<AdminRoute />} >
+              <Route path="" element={<AdminPanelPage />} />
+            </Route>
             <Route path="*" element={<Navigate to="/" />} />
           </Routes>
         </AuthProvider>
