@@ -21,6 +21,10 @@ export const googleProvider = new GoogleAuthProvider();
 
 let analytics: Analytics | null = null;
 if (typeof window !== "undefined") {
-  analytics = getAnalytics(app);
+  try {
+    analytics = getAnalytics(app);
+  } catch {
+    // analytics not available (SSR, ad-blocker, etc.)
+  }
 }
 export { analytics };

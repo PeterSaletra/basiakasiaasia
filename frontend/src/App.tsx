@@ -1,4 +1,5 @@
-import {BrowserRouter, Routes, Route, Navigate, Outlet} from 'react-router-dom'
+import {useEffect} from 'react'
+import {BrowserRouter, Routes, Route, Navigate, Outlet, useLocation} from 'react-router-dom'
 import { AuthProvider, useAuth } from './hooks/useAuth'
 import HomePage from '@/pages/HomePage'
 import LoginPage from '@/pages/LoginPage'
@@ -8,6 +9,7 @@ import ForumThreadPage from '@/pages/ForumThreadPage'
 import ThreadDetailPage from '@/pages/ThreadDetailPage'
 import ProfilePage from '@/pages/ProfilePage'
 import AdminPanelPage from './pages/AdminPanelPage'
+import { logScreenView } from '@/services/analytics'
 
 const ProtectedRoute = () => {
   const auth = useAuth()
@@ -41,9 +43,26 @@ const AdminRoute = () => {
   return <Outlet />
 }
 
+const ScreenTracker = () => {
+  const location = useLocation()
+  useEffect(() => {
+    const name = location.pathname === "/" ? "home"
+      : location.pathname === "/login" || location.pathname === "/register" ? "login"
+      : location.pathname === "/about" ? "about"
+      : location.pathname === "/forum" ? "forum"
+      : location.pathname.startsWith("/forum/") ? "forum_detail"
+      : location.pathname === "/profile" ? "profile"
+      : location.pathname === "/admin" ? "admin"
+      : "other"
+    logScreenView(name)
+  }, [location])
+  return null
+}
+
 function App() {
   return (
     <BrowserRouter>
+      <ScreenTracker />
       <AuthProvider>
           <Routes>
             <Route path="/" element={<HomePage />} />
