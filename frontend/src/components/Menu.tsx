@@ -19,7 +19,7 @@ function Menu() {
             <img src={Logo} alt="Logo" className="h-20 m-2" />
         </div>
         <div className="flex items-center gap-2">
-            {auth.isAuthenticated && <NotificationBell accessToken={auth.accessToken} />}
+            {auth.isAuthenticated && <NotificationBell />}
 
             <NavigationMenu>
                 <NavigationMenuList>

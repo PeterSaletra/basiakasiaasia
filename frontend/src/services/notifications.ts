@@ -2,7 +2,6 @@ import {
   NOTIFICATIONS_STORAGE_KEY,
   NOTIFICATIONS_UPDATED_EVENT,
 } from "@/config/storage";
-import { readMockSessionUser } from "@/services/mockSession";
 
 export type NotificationKind = "success" | "info" | "warning" | "moderation";
 
@@ -50,7 +49,7 @@ const writeNotificationsStore = (store: NotificationsStore): void => {
   window.localStorage.setItem(NOTIFICATIONS_STORAGE_KEY, JSON.stringify(store));
 };
 
-const emitNotificationsUpdated = (userId: number): void => {
+const emitNotificationsUpdated = (userId: string): void => {
   if (typeof window === "undefined") {
     return;
   }
@@ -73,17 +72,16 @@ const createNotificationId = (): string => {
 const sortNotifications = (notifications: AppNotification[]): AppNotification[] =>
   [...notifications].sort((left, right) => right.createdAt.localeCompare(left.createdAt));
 
-export function getNotifications(userId: number): AppNotification[] {
+export function getNotifications(userId: string): AppNotification[] {
   const store = readNotificationsStore();
-  return sortNotifications(store[String(userId)] ?? []);
+  return sortNotifications(store[userId] ?? []);
 }
 
 export function addNotification(
-  userId: number,
+  userId: string,
   notification: NewNotification
 ): AppNotification {
   const store = readNotificationsStore();
-  const userKey = String(userId);
   const nextNotification: AppNotification = {
     id: createNotificationId(),
     title: notification.title,
@@ -94,34 +92,32 @@ export function addNotification(
     readAt: null,
   };
 
-  store[userKey] = sortNotifications([nextNotification, ...(store[userKey] ?? [])]);
+  store[userId] = sortNotifications([nextNotification, ...(store[userId] ?? [])]);
   writeNotificationsStore(store);
   emitNotificationsUpdated(userId);
 
   return nextNotification;
 }
 
-export function markAsRead(userId: number, notificationId: string): AppNotification[] {
+export function markAsRead(userId: string, notificationId: string): AppNotification[] {
   const store = readNotificationsStore();
-  const userKey = String(userId);
-  const notifications = store[userKey] ?? [];
+  const notifications = store[userId] ?? [];
   const nextNotifications = notifications.map((notification) =>
     notification.id === notificationId && notification.readAt === null
       ? { ...notification, readAt: new Date().toISOString() }
       : notification
   );
 
-  store[userKey] = sortNotifications(nextNotifications);
+  store[userId] = sortNotifications(nextNotifications);
   writeNotificationsStore(store);
   emitNotificationsUpdated(userId);
 
-  return store[userKey];
+  return store[userId];
 }
 
-export function markAllAsRead(userId: number): AppNotification[] {
+export function markAllAsRead(userId: string): AppNotification[] {
   const store = readNotificationsStore();
-  const userKey = String(userId);
-  const notifications = store[userKey] ?? [];
+  const notifications = store[userId] ?? [];
   const timestamp = new Date().toISOString();
   const nextNotifications = notifications.map((notification) =>
     notification.readAt === null
@@ -129,27 +125,16 @@ export function markAllAsRead(userId: number): AppNotification[] {
       : notification
   );
 
-  store[userKey] = sortNotifications(nextNotifications);
+  store[userId] = sortNotifications(nextNotifications);
   writeNotificationsStore(store);
   emitNotificationsUpdated(userId);
 
-  return store[userKey];
+  return store[userId];
 }
 
-export function clearNotifications(userId: number): void {
+export function clearNotifications(userId: string): void {
   const store = readNotificationsStore();
-  const userKey = String(userId);
-
-  delete store[userKey];
+  delete store[userId];
   writeNotificationsStore(store);
   emitNotificationsUpdated(userId);
-}
-
-export function getCurrentUserNotifications(): AppNotification[] {
-  const currentUser = readMockSessionUser();
-  if (!currentUser) {
-    return [];
-  }
-
-  return getNotifications(currentUser.user_id);
 }

@@ -1,3 +1,4 @@
+import { getAuth } from "firebase/auth";
 import asiaAvatar from "@/assets/img/Asia.jpg";
 import basiaAvatar from "@/assets/img/Basia.jpg";
 import kasiaAvatar from "@/assets/img/Kasia.jpg";
@@ -294,6 +295,31 @@ const readDatabase = (): MockDatabase => {
   }
 };
 
+const findOrCreateFirebaseUser = (database: MockDatabase): MockUserRecord | null => {
+  const fbAuth = getAuth();
+  if (!fbAuth.currentUser) return null;
+
+  const fbUser = fbAuth.currentUser;
+  const existingUser = database.users.find(
+    (u) => u.email.toLowerCase() === (fbUser.email ?? "").toLowerCase()
+  );
+  if (existingUser) return existingUser;
+
+  const newUser: MockUserRecord = {
+    user_id: nextId(database.users.map((u) => u.user_id)),
+    username: fbUser.displayName ?? fbUser.email?.split("@")[0] ?? "user",
+    email: fbUser.email ?? "",
+    password: "",
+    gender: "other",
+    role: "user",
+    is_banned: false,
+    avatar: defaultUserAvatar,
+  };
+  database.users.unshift(newUser);
+  persistDatabase(database);
+  return newUser;
+};
+
 const getCurrentUser = (database: MockDatabase): MockUserRecord => {
   const sessionUser = readMockSessionUser();
   if (sessionUser) {
@@ -302,6 +328,9 @@ const getCurrentUser = (database: MockDatabase): MockUserRecord => {
       return currentUser;
     }
   }
+
+  const fbUser = findOrCreateFirebaseUser(database);
+  if (fbUser) return fbUser;
 
   const role = parseRoleFromSession();
   const userByRole = role
@@ -375,7 +404,7 @@ export async function mockRegister(
 
   database.users.unshift(newUser);
   persistDatabase(database);
-  addNotification(newUser.user_id, {
+  addNotification(String(newUser.user_id), {
     kind: "success",
     title: "Welcome to the forum",
     message: `Your account ${newUser.username} is ready to use.`,
@@ -413,7 +442,7 @@ export async function mockBanUser(userId: number) {
 
   user.is_banned = true;
   persistDatabase(database);
-  addNotification(user.user_id, {
+  addNotification(String(user.user_id), {
     kind: "moderation",
     title: "Account restricted",
     message: "An administrator has banned your account.",
@@ -433,7 +462,7 @@ export async function mockUnbanUser(userId: number) {
 
   user.is_banned = false;
   persistDatabase(database);
-  addNotification(user.user_id, {
+  addNotification(String(user.user_id), {
     kind: "success",
     title: "Account restored",
     message: "An administrator has unbanned your account.",
@@ -483,7 +512,7 @@ export async function mockCreateForum(title: string, description: string) {
 
   database.forums.unshift(newForum);
   persistDatabase(database);
-  addNotification(currentUser.user_id, {
+  addNotification(String(currentUser.user_id), {
     kind: "success",
     title: "Forum created",
     message: `You created the forum "${newForum.title}".`,
@@ -536,7 +565,7 @@ export async function mockCreateThread(
 
   database.threads.unshift(newThread);
   persistDatabase(database);
-  addNotification(currentUser.user_id, {
+  addNotification(String(currentUser.user_id), {
     kind: "success",
     title: "Thread created",
     message: `You started the thread "${newThread.title}".`,
@@ -566,6 +595,29 @@ export async function mockGetThreadById(threadId: number) {
     description: thread.description,
     author: thread.author,
     date: formatDisplayDate(thread.created_at),
+  });
+}
+
+export async function mockGetCurrentUserProfile() {
+  const database = readDatabase();
+  const user = getCurrentUser(database);
+  const threads = database.threads
+    .filter((t) => t.author_id === user.user_id)
+    .map((t) => ({
+      id: String(t.id),
+      forumId: String(t.forum_id),
+      title: t.title,
+      createdAt: formatDisplayDate(t.created_at),
+      replies: database.comments.filter((c) => c.thread_id === t.id).length,
+    }));
+  return withDelay({
+    username: user.username,
+    email: user.email,
+    role: user.role,
+    date_of_birth: user.date_of_birth ?? null,
+    gender: user.gender,
+    avatar: user.avatar,
+    threads,
   });
 }
 
@@ -605,7 +657,7 @@ export async function mockCreateComment(threadId: number, content: string) {
 
   database.comments.push(newComment);
   persistDatabase(database);
-  addNotification(currentUser.user_id, {
+  addNotification(String(currentUser.user_id), {
     kind: "info",
     title: "Comment posted",
     message: `Your comment was added to "${thread.title}".`,

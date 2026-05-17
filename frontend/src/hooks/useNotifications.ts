@@ -7,28 +7,15 @@ import {
   markAllAsRead as markAllStoredNotifications,
   markAsRead as markStoredNotificationAsRead,
 } from "@/services/notifications";
-import { readMockSessionUser } from "@/services/mockSession";
-import {
-  MOCK_SESSION_USER_STORAGE_KEY,
-  NOTIFICATIONS_STORAGE_KEY,
-  NOTIFICATIONS_UPDATED_EVENT,
-} from "@/config/storage";
+import { NOTIFICATIONS_UPDATED_EVENT } from "@/config/storage";
 
 type NotificationsSnapshot = {
-  currentUserId: number | null;
+  currentUserId: string | null;
   notifications: AppNotification[];
 };
 
-const readSnapshot = (accessToken: string | null): NotificationsSnapshot => {
-  if (!accessToken) {
-    return {
-      currentUserId: null,
-      notifications: [],
-    };
-  }
-
-  const currentUser = readMockSessionUser();
-  if (!currentUser) {
+const readSnapshot = (userId: string | null): NotificationsSnapshot => {
+  if (!userId) {
     return {
       currentUserId: null,
       notifications: [],
@@ -36,19 +23,19 @@ const readSnapshot = (accessToken: string | null): NotificationsSnapshot => {
   }
 
   return {
-    currentUserId: currentUser.user_id,
-    notifications: getNotifications(currentUser.user_id),
+    currentUserId: userId,
+    notifications: getNotifications(userId),
   };
 };
 
-export function useNotifications(accessToken: string | null) {
+export function useNotifications(userId: string | null) {
   const [snapshot, setSnapshot] = useState<NotificationsSnapshot>(() =>
-    readSnapshot(accessToken)
+    readSnapshot(userId)
   );
 
   const syncNotifications = useCallback(() => {
-    setSnapshot(readSnapshot(accessToken));
-  }, [accessToken]);
+    setSnapshot(readSnapshot(userId));
+  }, [userId]);
 
   useEffect(() => {
     syncNotifications();
@@ -59,27 +46,16 @@ export function useNotifications(accessToken: string | null) {
       return undefined;
     }
 
-    const handleStorage = (event: StorageEvent) => {
-      if (
-        event.key === NOTIFICATIONS_STORAGE_KEY ||
-        event.key === MOCK_SESSION_USER_STORAGE_KEY
-      ) {
-        syncNotifications();
-      }
-    };
-
     const handleNotificationsUpdated = () => {
       syncNotifications();
     };
 
-    window.addEventListener("storage", handleStorage);
     window.addEventListener(
       NOTIFICATIONS_UPDATED_EVENT,
       handleNotificationsUpdated as EventListener
     );
 
     return () => {
-      window.removeEventListener("storage", handleStorage);
       window.removeEventListener(
         NOTIFICATIONS_UPDATED_EVENT,
         handleNotificationsUpdated as EventListener

@@ -8,6 +8,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useNotifications } from "@/hooks/useNotifications";
+import { useAuth } from "@/hooks/useAuth";
 import { cn } from "@/lib/utils";
 import type { AppNotification } from "@/services/notifications";
 
@@ -47,17 +48,19 @@ const getNotificationDotClass = (notification: AppNotification): string => {
   }
 };
 
-function NotificationBell({ accessToken }: { accessToken: string | null }) {
+function NotificationBell() {
   const navigate = useNavigate();
+  const auth = useAuth();
+  const userId = auth.user?.uid ?? null;
   const {
     notifications,
     unreadCount,
     markAsRead,
     markAllAsRead,
     clearNotifications,
-  } = useNotifications(accessToken);
+  } = useNotifications(userId);
 
-  if (!accessToken) {
+  if (!auth.user) {
     return null;
   }
 
