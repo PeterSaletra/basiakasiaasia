@@ -10,6 +10,7 @@ import {
   getIdToken,
 } from "../services/firebaseAuth";
 import { getUserRole, createUserProfile } from "../services/roleService";
+import { writeMockSessionUser } from "../services/mockSession";
 
 type AuthContextType = {
   user: User | null;
@@ -42,6 +43,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       } else {
         setAccessToken(null);
         setRole(null);
+        writeMockSessionUser(null);
       }
       setLoading(false);
     });
@@ -93,6 +95,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     setUser(null);
     setAccessToken(null);
     setRole(null);
+    writeMockSessionUser(null);
     navigate("/login", { replace: true });
   };
 

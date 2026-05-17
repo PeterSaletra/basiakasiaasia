@@ -21,33 +21,9 @@ import type { SerializedEditorState } from 'lexical';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Editor } from '@/components/blocks/editor-00/editor';
-import { useState } from 'react';
-
-const dummyNickname = 'Asia';
-const dummyDate = '28-11-2001';
-const dummyThreads = [
-  {
-    id: 'thread-1',
-    forumId: '1',
-    title: 'How to Raise an Otter?',
-    createdAt: '2026-03-12',
-    replies: 8,
-  },
-  {
-    id: 'thread-2',
-    forumId: '1',
-    title: 'developing a nuclear weapon - step-by-step instructions',
-    createdAt: '2026-03-20',
-    replies: 67,
-  },
-  {
-    id: 'thread-3',
-    forumId: '2',
-    title: 'whats your favorite way to cook kale?',
-    createdAt: '2026-04-02',
-    replies: 12,
-  },
-];
+import { useState, useEffect } from 'react';
+import { useAuth } from '@/hooks/useAuth';
+import { fetchProfile } from '@/services/profile';
 
 const initialValue = {
   root: {
@@ -80,24 +56,50 @@ const initialValue = {
 } as unknown as SerializedEditorState;
 
 const handleUpdateSignature = () => {
-  // In a real app, you’d send this to your backend (e.g., via API)
   console.log('Updated signature:', 'JEBAC DISA KURWE JEBANA GIERCZAKA');
   alert('Signature updated successfully!');
 };
 
 function ProfilePage() {
+  const auth = useAuth();
+  const [profile, setProfile] = useState<{
+    username: string;
+    email: string;
+    avatar: string | null;
+    date_of_birth: string | null;
+    gender: string | null;
+    createdAt: string | null;
+    threads: { id: string; forumId: string; title: string; createdAt: string; replies: number }[];
+  } | null>(null);
+
   const [editorState, setEditorState] = useState<SerializedEditorState>(initialValue);
-  // Edit mode and form state for profile fields
   const [isEditing, setIsEditing] = useState(false);
-  const [nickname, setNickname] = useState<string>(dummyNickname);
-  const [dateOfBirth, setDateOfBirth] = useState<string>(dummyDate);
-  const [gender, setGender] = useState<string>('-');
-  // backup to revert on cancel
-  const [backup, setBackup] = useState({
-    nickname: dummyNickname,
-    dateOfBirth: dummyDate,
-    gender: '-',
-  });
+  const [nickname, setNickname] = useState("");
+  const [dateOfBirth, setDateOfBirth] = useState("");
+  const [gender, setGender] = useState("");
+  const [backup, setBackup] = useState({ nickname: "", dateOfBirth: "", gender: "" });
+
+  useEffect(() => {
+    if (auth.user) {
+      fetchProfile(auth.user.uid).then((data) => {
+        if (data) {
+          setProfile(data);
+          setNickname(data.username);
+          setDateOfBirth(data.date_of_birth ?? "");
+          setGender(data.gender ?? "");
+        }
+      });
+    }
+  }, [auth.user]);
+
+  if (!profile || auth.loading) {
+    return (
+      <div className="w-full min-h-screen flex flex-col gap-4 p-4 bg-background">
+        <Menu />
+        <div className="flex-1 flex items-center justify-center">Loading...</div>
+      </div>
+    );
+  }
 
   return (
     <div className="w-full min-h-screen flex flex-col gap-4 p-4 bg-background">
@@ -107,16 +109,18 @@ function ProfilePage() {
           <Card className="w-full md:w-3/4 lg:w-2/3 border-0 shadow-none">
             <CardHeader className="text-center">
               <CardTitle className="text-5xl font-bold">
-                {dummyNickname}'s Profile
+                {profile.username}'s Profile
               </CardTitle>
             </CardHeader>
             <CardContent className="flex flex-col items-center gap-3">
               <img
-                src="/src/assets/img/Asia.jpg"
+                src={profile.avatar ?? "/src/assets/img/default-user.svg"}
                 alt="Profile Picture"
                 className="rounded-3xl w-56 h-56 md:w-80 md:h-80 object-cover"
               />
-              <div className="text-sm text-muted-foreground">Joined: {dummyDate}</div>
+              <div className="text-sm text-muted-foreground">
+                {profile.email}
+              </div>
             </CardContent>
           </Card>
 
@@ -136,7 +140,6 @@ function ProfilePage() {
                     Profile Information
                   </AccordionTrigger>
                   <AccordionContent className="space-y-4 text-sm md:text-base">
-                    {/* Table for Profile Data */}
                     <Table>
                       <TableHeader>
                         <TableRow>
@@ -159,6 +162,10 @@ function ProfilePage() {
                           </TableCell>
                         </TableRow>
                         <TableRow>
+                          <TableCell>Email</TableCell>
+                          <TableCell>{profile.email}</TableCell>
+                        </TableRow>
+                        <TableRow>
                           <TableCell>Date of Birth</TableCell>
                           <TableCell>
                             {isEditing ? (
@@ -167,13 +174,17 @@ function ProfilePage() {
                                 onChange={(e) => setDateOfBirth(e.target.value)}
                               />
                             ) : (
-                              dateOfBirth
+                              dateOfBirth || "-"
                             )}
                           </TableCell>
                         </TableRow>
                         <TableRow>
                           <TableCell>Account Created</TableCell>
-                          <TableCell>{dummyDate}</TableCell>
+                          <TableCell>
+                            {profile.createdAt
+                              ? new Date(profile.createdAt).toLocaleDateString()
+                              : "-"}
+                          </TableCell>
                         </TableRow>
                         <TableRow>
                           <TableCell>Gender</TableCell>
@@ -184,7 +195,7 @@ function ProfilePage() {
                                 onChange={(e) => setGender(e.target.value)}
                               />
                             ) : (
-                              gender
+                              gender || "-"
                             )}
                           </TableCell>
                         </TableRow>
@@ -204,7 +215,6 @@ function ProfilePage() {
                         <div className="flex gap-2">
                           <Button
                             onClick={() => {
-                              // Save changes (in a real app, persist to backend)
                               setIsEditing(false);
                             }}
                           >
@@ -213,7 +223,6 @@ function ProfilePage() {
                           <Button
                             variant="secondary"
                             onClick={() => {
-                              // Revert changes
                               setNickname(backup.nickname);
                               setDateOfBirth(backup.dateOfBirth);
                               setGender(backup.gender);
@@ -225,7 +234,6 @@ function ProfilePage() {
                         </div>
                       )}
                     </div>
-                    {/* Custom Signature */}
                     <div className="mt-6">
                       <h3 className="text-lg font-semibold mb-2">
                         Custom User Signature
@@ -249,31 +257,37 @@ function ProfilePage() {
                     User Threads
                   </AccordionTrigger>
                   <AccordionContent className="space-y-4 text-sm md:text-base">
-                    <Table>
-                      <TableHeader>
-                        <TableRow>
-                          <TableHead>Thread Title</TableHead>
-                          <TableHead>Replies</TableHead>
-                          <TableHead>Created</TableHead>
-                        </TableRow>
-                      </TableHeader>
-                      <TableBody>
-                        {dummyThreads.map((thread) => (
-                          <TableRow key={thread.id}>
-                            <TableCell className="font-medium">
-                              <Link
-                                to={`/forum/${thread.forumId}/thread/${thread.id}`}
-                                className="text-blue-600 hover:text-blue-800 hover:underline"
-                              >
-                                {thread.title}
-                              </Link>
-                            </TableCell>
-                            <TableCell>{thread.replies}</TableCell>
-                            <TableCell>{thread.createdAt}</TableCell>
+                    {profile.threads.length === 0 ? (
+                      <p className="text-muted-foreground text-center py-4">
+                        No threads yet.
+                      </p>
+                    ) : (
+                      <Table>
+                        <TableHeader>
+                          <TableRow>
+                            <TableHead>Thread Title</TableHead>
+                            <TableHead>Replies</TableHead>
+                            <TableHead>Created</TableHead>
                           </TableRow>
-                        ))}
-                      </TableBody>
-                    </Table>
+                        </TableHeader>
+                        <TableBody>
+                          {profile.threads.map((thread) => (
+                            <TableRow key={thread.id}>
+                              <TableCell className="font-medium">
+                                <Link
+                                  to={`/forum/${thread.forumId}/thread/${thread.id}`}
+                                  className="text-blue-600 hover:text-blue-800 hover:underline"
+                                >
+                                  {thread.title}
+                                </Link>
+                              </TableCell>
+                              <TableCell>{thread.replies}</TableCell>
+                              <TableCell>{thread.createdAt}</TableCell>
+                            </TableRow>
+                          ))}
+                        </TableBody>
+                      </Table>
+                    )}
                   </AccordionContent>
                 </AccordionItem>
               </Accordion>

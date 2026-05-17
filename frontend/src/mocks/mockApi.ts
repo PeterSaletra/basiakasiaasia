@@ -1,3 +1,4 @@
+import { getAuth } from "firebase/auth";
 import asiaAvatar from "@/assets/img/Asia.jpg";
 import basiaAvatar from "@/assets/img/Basia.jpg";
 import kasiaAvatar from "@/assets/img/Kasia.jpg";
@@ -294,6 +295,31 @@ const readDatabase = (): MockDatabase => {
   }
 };
 
+const findOrCreateFirebaseUser = (database: MockDatabase): MockUserRecord | null => {
+  const fbAuth = getAuth();
+  if (!fbAuth.currentUser) return null;
+
+  const fbUser = fbAuth.currentUser;
+  const existingUser = database.users.find(
+    (u) => u.email.toLowerCase() === (fbUser.email ?? "").toLowerCase()
+  );
+  if (existingUser) return existingUser;
+
+  const newUser: MockUserRecord = {
+    user_id: nextId(database.users.map((u) => u.user_id)),
+    username: fbUser.displayName ?? fbUser.email?.split("@")[0] ?? "user",
+    email: fbUser.email ?? "",
+    password: "",
+    gender: "other",
+    role: "user",
+    is_banned: false,
+    avatar: defaultUserAvatar,
+  };
+  database.users.unshift(newUser);
+  persistDatabase(database);
+  return newUser;
+};
+
 const getCurrentUser = (database: MockDatabase): MockUserRecord => {
   const sessionUser = readMockSessionUser();
   if (sessionUser) {
@@ -302,6 +328,9 @@ const getCurrentUser = (database: MockDatabase): MockUserRecord => {
       return currentUser;
     }
   }
+
+  const fbUser = findOrCreateFirebaseUser(database);
+  if (fbUser) return fbUser;
 
   const role = parseRoleFromSession();
   const userByRole = role
@@ -566,6 +595,29 @@ export async function mockGetThreadById(threadId: number) {
     description: thread.description,
     author: thread.author,
     date: formatDisplayDate(thread.created_at),
+  });
+}
+
+export async function mockGetCurrentUserProfile() {
+  const database = readDatabase();
+  const user = getCurrentUser(database);
+  const threads = database.threads
+    .filter((t) => t.author_id === user.user_id)
+    .map((t) => ({
+      id: String(t.id),
+      forumId: String(t.forum_id),
+      title: t.title,
+      createdAt: formatDisplayDate(t.created_at),
+      replies: database.comments.filter((c) => c.thread_id === t.id).length,
+    }));
+  return withDelay({
+    username: user.username,
+    email: user.email,
+    role: user.role,
+    date_of_birth: user.date_of_birth ?? null,
+    gender: user.gender,
+    avatar: user.avatar,
+    threads,
   });
 }
 
