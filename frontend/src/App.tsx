@@ -9,7 +9,7 @@ import ForumThreadPage from '@/pages/ForumThreadPage'
 import ThreadDetailPage from '@/pages/ThreadDetailPage'
 import ProfilePage from '@/pages/ProfilePage'
 import AdminPanelPage from './pages/AdminPanelPage'
-import { logScreenView } from '@/services/analytics'
+import { logPageView } from '@/services/analytics'
 
 const ProtectedRoute = () => {
   const auth = useAuth()
@@ -46,15 +46,17 @@ const AdminRoute = () => {
 const ScreenTracker = () => {
   const location = useLocation()
   useEffect(() => {
-    const name = location.pathname === "/" ? "home"
-      : location.pathname === "/login" || location.pathname === "/register" ? "login"
-      : location.pathname === "/about" ? "about"
-      : location.pathname === "/forum" ? "forum"
-      : location.pathname.startsWith("/forum/") ? "forum_detail"
-      : location.pathname === "/profile" ? "profile"
-      : location.pathname === "/admin" ? "admin"
-      : "other"
-    logScreenView(name)
+    const title = location.pathname === "/" ? "Home"
+      : location.pathname === "/login" ? "Login"
+      : location.pathname === "/register" ? "Sign Up"
+      : location.pathname === "/about" ? "About"
+      : location.pathname === "/forum" ? "Forum"
+      : location.pathname.startsWith("/forum/") ? "Forum Detail"
+      : location.pathname === "/profile" ? "Profile"
+      : location.pathname === "/admin" ? "Admin"
+      : "Other"
+    document.title = `${title} | BasiaKasiaAsia`
+    logPageView(document.title, location.pathname)
   }, [location])
   return null
 }
