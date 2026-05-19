@@ -1,11 +1,12 @@
 import { logEvent as fbLogEvent, type Analytics } from "firebase/analytics";
 import { analytics } from "@/config/firebase";
 
-export function logScreenView(screenName: string) {
+export function logPageView(pageTitle: string, pagePath: string) {
   if (!analytics) return;
-  fbLogEvent(analytics, "screen_view", {
-    firebase_screen: screenName,
-    firebase_screen_class: screenName,
+  fbLogEvent(analytics, "page_view", {
+    page_title: pageTitle,
+    page_location: `${window.location.origin}${pagePath}`,
+    page_path: pagePath,
   });
 }
 
