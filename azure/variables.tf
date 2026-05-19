@@ -13,7 +13,7 @@ variable "resource_group_name" {
 variable "app_name" {
   description = "Base name for the App Service web app."
   type        = string
-  default     = "frontend-app"
+  default     = "basiakasiaasia"
 }
 
 variable "service_plan_sku" {
