@@ -11,11 +11,6 @@ terraform {
       source  = "hashicorp/archive"
       version = "~> 2.5"
     }
-
-    random = {
-      source  = "hashicorp/random"
-      version = "~> 3.6"
-    }
   }
 }
 
@@ -25,13 +20,7 @@ provider "azurerm" {
 
 locals {
   frontend_dist_dir = abspath("${path.module}/../frontend/dist")
-  app_name          = "${var.app_name}-${random_string.suffix.result}"
-}
-
-resource "random_string" "suffix" {
-  length  = 6
-  upper   = false
-  special = false
+  app_name          = var.app_name
 }
 
 resource "azurerm_resource_group" "this" {
