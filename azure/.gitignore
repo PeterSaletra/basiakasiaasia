@@ -1,0 +1,5 @@
+.direnv
+.terraform/
+*.tfstate
+*.tfstate.*
+frontend.zip
