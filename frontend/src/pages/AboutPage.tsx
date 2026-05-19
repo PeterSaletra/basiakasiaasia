@@ -1,13 +1,17 @@
 import Cards from "@/components/Card";
 import Footer from "@/components/Foooter";
 import Menu from "@/components/Menu";
+import AboutUsBanner from "../assets/img/about_us_banner.jpg";
+import BasiaImg from "../assets/img/Basia.jpg";
+import KasiaImg from "../assets/img/Kasia.jpg";
+import AsiaImg from "../assets/img/Asia.jpg";
 
 function AboutPage() {
     return (
         <div className='w-full min-h-screen flex flex-col gap-4 p-4 bg-gray-50'> 
             <Menu />
             <div className="flex flex-col flex-1 items-center">
-                <img src="/src/assets/img/about_us_banner.jpg" alt="About Us Banner" className="w-full max-w-4xl mb-8 rounded-lg shadow-lg" />
+                <img src={AboutUsBanner} alt="About Us Banner" className="w-full max-w-4xl mb-8 rounded-lg shadow-lg" />
                 
                 <div className="max-w-4xl p-8 rounded-lg shadow-lg mb-8">
                     <p className="text-lg leading-relaxed mb-6">
@@ -59,17 +63,17 @@ function AboutPage() {
                     <p className="text-2xl font-semibold mb-4">Our Founders</p>
                     <div className="flex gap-6 flex-wrap">
                         <Cards 
-                            imageSrc="/src/assets/img/Basia.jpg"
+                            imageSrc={BasiaImg}
                             title="Basia"
                             description="Co-founder and main visionary of the platform. Responsible for development strategy and building the community."
                         />
                         <Cards 
-                            imageSrc="/src/assets/img/Kasia.jpg"
+                            imageSrc={KasiaImg}
                             title="Kasia"
                             description="Technology and product development expert. Ensures the platform runs smoothly and efficiently."
                         />
                         <Cards 
-                            imageSrc="/src/assets/img/Asia.jpg"
+                            imageSrc={AsiaImg}
                             title="Asia"
                             description="Communication and marketing specialist. Creates bridges between the community and the platform."
                         />
