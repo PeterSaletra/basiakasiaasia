@@ -18,4 +18,9 @@ terraform init
 terraform apply
 ```
 
-Terraform zips `../frontend/dist` and deploys it to a Linux App Service.
+3. Configure Firebase
+
+Add URI to `Authentication` -> `Settings` -> `Authorized domains` in console.firebase.google.com
+```
+<app-name>.azurewebsites.net
+```
