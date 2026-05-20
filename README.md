@@ -1,5 +1,19 @@
 # BasiaKasiaAsia
 
+<img src="frontend/src/assets/img/Logo-mini.svg" alt="Logo projektu BasiaKasiaAsia" height="100" />
+
+![SPA](https://img.shields.io/badge/App-SPA-1f2937)
+![Mock API](https://img.shields.io/badge/Mode-Mock_API-059669)
+![RBAC](https://img.shields.io/badge/Access-user%20%7C%20admin-7c3aed)
+![Azure Ready](https://img.shields.io/badge/Deploy-Azure_App_Service-0078D4?logo=microsoftazure&logoColor=white)
+
+[![React](https://img.shields.io/badge/React-19-61DAFB?logo=react&logoColor=0b1020)](https://react.dev/)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.9-3178C6?logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
+[![Vite](https://img.shields.io/badge/Vite-7-646CFF?logo=vite&logoColor=white)](https://vite.dev/)
+[![Firebase](https://img.shields.io/badge/Firebase-Auth%20%7C%20Firestore%20%7C%20Analytics-FFCA28?logo=firebase&logoColor=black)](https://firebase.google.com/)
+[![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-4-06B6D4?logo=tailwindcss&logoColor=white)](https://tailwindcss.com/)
+[![shadcn/ui](https://img.shields.io/badge/UI-shadcn%2Fui-000000?logo=shadcnui&logoColor=white)](https://ui.shadcn.com/)
+
 Frontendowa aplikacja forum społecznościowego zbudowana w React i TypeScript, oparta o Firebase Authentication, Firestore oraz Firebase Analytics. Repozytorium zawiera także prostą infrastrukturę Terraform do publikacji frontendu w Azure App Service.
 
 Projekt działa jako SPA i obsługuje dwa główne obszary:
@@ -40,6 +54,49 @@ Projekt działa jako SPA i obsługuje dwa główne obszary:
 | Analytics | Firebase Analytics | `page_view` i zdarzenia niestandardowe |
 | UX analytics | zewnętrzny skrypt w `frontend/index.html` | obecnie osadzony jest skrypt Contentsquare |
 | Deployment | Terraform + Azure App Service | publikacja buildu frontendu |
+
+## Integracje projektu
+
+W warstwie integracyjnej projekt łączy uwierzytelnianie, analitykę produktową oraz narzędzia do badania zachowań użytkowników. Część tej logiki jest zaimplementowana bezpośrednio w kodzie frontendu, a część obejmuje konfigurację usług zewnętrznych wykorzystywanych podczas realizacji i ewaluacji projektu.
+
+### Firebase
+
+Firebase pełni w projekcie rolę podstawowej platformy backendowej dla funkcji związanych z tożsamością użytkownika i analityką aplikacji:
+
+- Firebase Authentication obsługuje logowanie e-mail/hasło oraz logowanie Google,
+- Firestore przechowuje profil użytkownika i rolę `user` / `admin`,
+- Firebase Analytics służy do logowania odsłon ekranów oraz zdarzeń aplikacyjnych.
+
+Najbardziej widoczne punkty integracji w repo to:
+
+- `frontend/src/config/firebase.ts`,
+- `frontend/src/services/firebaseAuth.ts`,
+- `frontend/src/services/analytics.ts`,
+- `frontend/src/hooks/useAuth.tsx`.
+
+<p align="center">
+  <img src="frontend/src/assets/img/firebase.png" alt="Konfiguracja i integracja Firebase w projekcie" width="100%" />
+</p>
+
+### Google Analytics
+
+Google Analytics wspiera warstwę pomiarową projektu od strony ruchu i zachowań użytkowników na poziomie całej aplikacji. Narzędzie to pozwala analizować m.in. liczbę odwiedzin, źródła wejść, najczęściej odwiedzane sekcje oraz ogólne trendy korzystania z forum.
+
+W kontekście projektu Google Analytics stanowi uzupełnienie pomiarów produktowych i pomaga ocenić, które widoki oraz ścieżki użytkownika generują największe zaangażowanie.
+
+<p align="center">
+  <img src="frontend/src/assets/img/google_analitycs.png" alt="Widok konfiguracji lub raportów Google Analytics dla projektu" width="100%" />
+</p>
+
+### Hotjar
+
+Hotjar został wykorzystany jako narzędzie do jakościowej analizy użyteczności interfejsu. Dzięki heatmapom i obserwacji zachowań użytkowników możliwa jest ocena, które sekcje aplikacji przyciągają uwagę, gdzie użytkownicy klikają najczęściej i w których miejscach pojawiają się potencjalne bariery UX.
+
+Takie dane są szczególnie przydatne przy analizie stron logowania, widoków forum, wątków i formularzy publikacji treści, ponieważ pozwalają szybciej wykrywać problemy z nawigacją lub czytelnością interfejsu.
+
+<p align="center">
+  <img src="frontend/src/assets/img/hotjar.png" alt="Widok narzędzia Hotjar i analiza heatmap dla projektu" width="100%" />
+</p>
 
 ## Architektura
 
