@@ -17,6 +17,7 @@
 Frontendowa aplikacja forum społecznościowego zbudowana w React i TypeScript, oparta o Firebase Authentication, Firestore oraz Firebase Analytics. Repozytorium zawiera także prostą infrastrukturę Terraform do publikacji frontendu w Azure App Service.
 
 Projekt działa jako SPA i obsługuje dwa główne obszary:
+
 - część publiczną: strona główna, logowanie/rejestracja, opis społeczności,
 - część aplikacyjną: fora, wątki, komentarze, profil użytkownika, panel administracyjny.
 
@@ -40,20 +41,20 @@ Projekt działa jako SPA i obsługuje dwa główne obszary:
 
 ## Stack technologiczny
 
-| Obszar | Technologia | Zastosowanie |
-| --- | --- | --- |
-| Frontend | React 19, TypeScript, Vite | aplikacja SPA |
-| Routing | `react-router-dom` | trasy publiczne i chronione |
-| UI | Tailwind CSS v4, shadcn/ui, Radix UI | komponenty interfejsu |
-| Tabele | TanStack Table | widoki admina i forum |
-| Edytor | Lexical | podpis użytkownika w profilu |
-| Powiadomienia | Sonner | toasty i feedback w UI |
-| Integracja HTTP | Axios | komunikacja z backendem REST |
-| Auth | Firebase Authentication | logowanie e-mail/hasło i Google |
-| Dane profilu / ról | Firestore | kolekcja `users` |
-| Analytics | Firebase Analytics | `page_view` i zdarzenia niestandardowe |
-| UX analytics | zewnętrzny skrypt w `frontend/index.html` | obecnie osadzony jest skrypt Contentsquare |
-| Deployment | Terraform + Azure App Service | publikacja buildu frontendu |
+| Obszar             | Technologia                               | Zastosowanie                               |
+| ------------------ | ----------------------------------------- | ------------------------------------------ |
+| Frontend           | React 19, TypeScript, Vite                | aplikacja SPA                              |
+| Routing            | `react-router-dom`                        | trasy publiczne i chronione                |
+| UI                 | Tailwind CSS v4, shadcn/ui, Radix UI      | komponenty interfejsu                      |
+| Tabele             | TanStack Table                            | widoki admina i forum                      |
+| Edytor             | Lexical                                   | podpis użytkownika w profilu               |
+| Powiadomienia      | Sonner                                    | toasty i feedback w UI                     |
+| Integracja HTTP    | Axios                                     | komunikacja z backendem REST               |
+| Auth               | Firebase Authentication                   | logowanie e-mail/hasło i Google            |
+| Dane profilu / ról | Firestore                                 | kolekcja `users`                           |
+| Analytics          | Firebase Analytics                        | `page_view` i zdarzenia niestandardowe     |
+| UX analytics       | zewnętrzny skrypt w `frontend/index.html` | obecnie osadzony jest skrypt Contentsquare |
+| Deployment         | Terraform + Azure App Service             | publikacja buildu frontendu                |
 
 ## Integracje projektu
 
@@ -121,16 +122,36 @@ flowchart LR
 
 ## Role i trasy
 
-| Trasa | Dostęp | Opis |
-| --- | --- | --- |
-| `/` | publiczny | landing page projektu |
-| `/login` | publiczny | logowanie i rejestracja |
-| `/about` | publiczny | opis społeczności i założycielek |
-| `/forum` | publiczny | lista forów |
-| `/forum/:id` | publiczny | lista wątków w forum |
-| `/forum/:id/thread/:threadId` | publiczny | szczegóły wątku i komentarze |
-| `/profile` | zalogowany użytkownik | profil użytkownika |
-| `/admin` | administrator | panel zarządzania użytkownikami i forami |
+| Trasa                         | Dostęp                | Opis                                     |
+| ----------------------------- | --------------------- | ---------------------------------------- |
+| `/`                           | publiczny             | landing page projektu                    |
+| `/login`                      | publiczny             | logowanie i rejestracja                  |
+| `/about`                      | publiczny             | opis społeczności i założycielek         |
+| `/forum`                      | publiczny             | lista forów                              |
+| `/forum/:id`                  | publiczny             | lista wątków w forum                     |
+| `/forum/:id/thread/:threadId` | publiczny             | szczegóły wątku i komentarze             |
+| `/profile`                    | zalogowany użytkownik | profil użytkownika                       |
+| `/admin`                      | administrator         | panel zarządzania użytkownikami i forami |
+
+### Wygląd aplikacji
+
+Strona logowania
+
+<p align="center">
+  <img src="frontend/src/assets/img/login-page.png" alt="Widok strony logowania aplikacji" width="100%" />
+</p>
+
+Strona forów
+
+<p align="center">
+  <img src="frontend/src/assets/img/forum-page.png" alt="Widok strony z listą forów" width="100%" />
+</p>
+
+Admin panel
+
+<p align="center">
+  <img src="frontend/src/assets/img/admin-page.png" alt="Widok panelu administracyjnego" width="100%" />
+</p>
 
 ## Struktura repozytorium
 
@@ -207,17 +228,17 @@ npm run lint
 
 Plik wzorcowy znajduje się w `frontend/.env.example`.
 
-| Zmienna | Opis |
-| --- | --- |
-| `VITE_USE_MOCK_API` | przełącza dane forum i administracji na lokalny mock |
-| `VITE_API_ROOT_URL` | bazowy adres backendu, domyślnie `http://localhost:8000` |
-| `VITE_FIREBASE_API_KEY` | konfiguracja Firebase |
-| `VITE_FIREBASE_AUTH_DOMAIN` | domena projektu Firebase |
-| `VITE_FIREBASE_PROJECT_ID` | identyfikator projektu Firebase |
-| `VITE_FIREBASE_STORAGE_BUCKET` | bucket Storage |
-| `VITE_FIREBASE_MESSAGING_SENDER_ID` | identyfikator nadawcy |
-| `VITE_FIREBASE_APP_ID` | identyfikator aplikacji |
-| `VITE_FIREBASE_MEASUREMENT_ID` | identyfikator Analytics |
+| Zmienna                             | Opis                                                     |
+| ----------------------------------- | -------------------------------------------------------- |
+| `VITE_USE_MOCK_API`                 | przełącza dane forum i administracji na lokalny mock     |
+| `VITE_API_ROOT_URL`                 | bazowy adres backendu, domyślnie `http://localhost:8000` |
+| `VITE_FIREBASE_API_KEY`             | konfiguracja Firebase                                    |
+| `VITE_FIREBASE_AUTH_DOMAIN`         | domena projektu Firebase                                 |
+| `VITE_FIREBASE_PROJECT_ID`          | identyfikator projektu Firebase                          |
+| `VITE_FIREBASE_STORAGE_BUCKET`      | bucket Storage                                           |
+| `VITE_FIREBASE_MESSAGING_SENDER_ID` | identyfikator nadawcy                                    |
+| `VITE_FIREBASE_APP_ID`              | identyfikator aplikacji                                  |
+| `VITE_FIREBASE_MEASUREMENT_ID`      | identyfikator Analytics                                  |
 
 ## Tryb mock
 
